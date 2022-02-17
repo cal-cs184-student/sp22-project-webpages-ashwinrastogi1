@@ -1,7 +1,214 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 1 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184 Rasterizer</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2022</h1>
+<h1 align="middle">Project 1: Rasterizer</h1>
+<h2 align="middle">Ashwin Rastogi & Jared Tating, CS184-team-team</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>In this project, we implemented different rendering methods for images including transformations like scaling, translating, rotating. We also implemented methods to combat aliasing like pixel sampling and level sampling. We also used different coordinate spaces to add more complex colors and textures to shapes. </p>
+
+<h2 align="middle">Section I: Rasterization</h2>
+
+<div>
+  <h3 align="middle">Part 1: Rasterizing single-color triangles</h3>
+  <p> In order to rasterize a triangle, we first start by creating a "bounding box." We do this by finding the maximal and minimal x and y values of the triangle. We then iterate through each pixel within that
+    bounding box, and perform a three-line triangle test to determine whether that pixel is inside or outside of the triangle. If it is inside, we color the triangle. We continue this for all points in the
+    bounding box until the whole triangle is rasterized.</p>
+
+  <p> Our algorithm is no worse than one that checks each sample within the bounding box of the triangle, because our algorithm does exactly that.</p>
+
+  <div align="middle">
+    <img src="images/task_01.png" width="400px"/>
+  </div>
+</div>
+
+<div>
+  <h3 align="middle">Part 2: Antialiasing triangles</h3>
+
+  <p> Our supersampling algorithm closely follows what we did for the default sample rate in task 1. What's different is that we essentially blow up the resolution to twice the size, sample it like before, and
+    then downsample. We achieve this by changing the size of the sample buffer, as well as the triangle's coordinates by a factor of the square root of the sample rate. We then use our original algorithm to
+    fill the blown out images sample buffer, and then downsample the values in the sample buffer onto the frame buffer, by averaging the pixel values in the supersample buffer that fit into a single pixel in the frame buffer.</p>
+
+  <p>Supersampling is useful because it allows us to reduce rough edges and jaggies. </p>
+
+  <p>In order to upsample and downsample, we had to scale how we map values to the sample buffer all throughout the rasterization pipeline. This scaling factor was simply the sampling rate.</p>
+
+  <p>Supersampling allowed us to anti-alias our triangles because it allowed us to capture some of the details lost to sampling at such a low sample rate.</p>
+
+  <div align="middle">
+    <table>
+      <tr>
+        <td>
+          <img src="images/task_2_1.png" align="middle" width="400px"/>
+          <figcaption align="middle">Sampling Rate of 1</figcaption>
+        </td>
+        <td>
+          <img src="images/task_2_4.png" align="middle" width="400px"/>
+          <figcaption align="middle">Sampling Rate of 4</figcaption>
+        </td>
+      </tr>
+    </table>
+
+    <img src="images/task_2_16.png" align="middle" width="400px"/>
+    <figcaption align="middle">Sampling Rate of 16</figcaption>
+
+  </div>
+
+
+</div>
+
+<div>
+  <h3 align="middle">Part 3: Transforms</h3>
+
+  <p>I tried to make cubeman look like he was squating by applying rotation and translation transformations around his legs.</p>
+
+  <div align="middle">
+    <img src="images/task_3.png" align="middle" width="400px"/>
+    <figcaption align="middle">my_robot.svg</figcaption>
+  </div>
+
+
+
+</div>
+
+<h2 align="middle">Section II: Sampling</h2>
+
+<div>
+  <h3 align="middle">Part 4: Barycentric coordinates</h3>
+
+  <div align="middle">
+    <img src="images/task_4_1.png" align="middle" width="400px"/>
+  </div>
+
+  <p>Barycentric coordinates are a way to calculate values in a triangle proportional to their distance from each vertex. For example, in the triangle above, each vertex of the triangle has a specific color value.
+    Each point within the triangle has a value proportional to its distance from each vertex, which results in a gradient between each corner of the triangle.
+  </p>
+
+  <div align="middle">
+    <img src="images/task_4_2.png" align="middle" width="400px"/>
+    <figcaption align="middle">png screenshot of test_7.svg</figcaption>
+  </div>
+
+</div>
+
+<div>
+  <h3 align="middle">Part 5: "Pixel sampling" for texture mapping</h3>
+
+  <p>Pixel Sampling is a technique in which we sample based on relative coordinates. For the case of texture mapping, we sampled points on the texture relative to it's point in a triangle using barycentric coordinates.
+  We used two sampling methods here, Nearest Neighbor Sampling and Bilinear Sampling. Nearest neighbor sampling simple takes a sample of the pixel in the texture located at the relative location of the triangle.
+  Bilinear Sampling however takes into account the four nearest points to sample, and interpolates their values relative to their distances from the point on the texture.</p>
+
+  <p>As shown below, Bilinear Sampling Clearly defeats Nearest Neightbor sampling, especially at a sampling rate of 1. It looks much more smoother, than the other, but the difference is much more subtle as the sampling
+    rate increases. It appears as though the major difference occurs at low sampling rates. This may be because at the low sampling rate, bilinear takes into account four pixels at a time, while Nearest Neighbor
+    only takes into account a single pixel. </p>
+
+  <div align="middle">
+    <table>
+      <tr>
+        <td>
+          <img src="images/NN_1.png" align="middle" width="400px"/>
+          <figcaption align="middle">Nearest Neighbor, Sampling Rate: 1</figcaption>
+        </td>
+        <td>
+          <img src="images/NN_16.png" align="middle" width="400px"/>
+          <figcaption align="middle">Nearest Neighbor, Sampling Rate: 16</figcaption>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <img src="images/B_1.png" align="middle" width="400px"/>
+          <figcaption align="middle">Bilinear, Sampling Rate: 1</figcaption>
+        </td>
+        <td>
+          <img src="images/B_16.png" align="middle" width="400px"/>
+          <figcaption align="middle">Bilinear, Sampling Rate: 16</figcaption>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+
+<div>
+  <h3 align="middle">Part 6: "Level sampling" with mipmaps for texture mapping</h3>
+  <p>Level sampling is a sampling method that samples objects that are further back in space at a lower resolution than objects that are in the foreground. Pixel sampling is the fastest and most memory efficient of the sampling methods. It requires exactly one sample per pixel; however, it is the most susceptible to aliasing. Multiple samples per pixel require upscaling and then downscaling which is both more memory and time intensive (both are linear with the sampling rate used per pixel). It is a good method for combating aliasing. Level sampling can be more memory intensive than both methods as it requires storing different downsampled copies of the image. It is also pretty time intensive because it requires calculating depth/level and then sampling from that mipmap accordingly. It is very effective against aliasing.</p>
+  <div align="middle">
+    <table>
+      <tr>
+        <td>
+          <img src="images/L0PL.png" align="middle" width="400px"/>
+          <figcaption align="middle">Level Zero, Pixel Linear</figcaption>
+        </td>
+        <td>
+          <img src="images/L0PN.png" align="middle" width="400px"/>
+          <figcaption align="middle">Level Zero, Pixel Nearest Neighbor</figcaption>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <img src="images/LNPL.png" align="middle" width="400px"/>
+          <figcaption align="middle">Level Nearest, Pixel Linear</figcaption>
+        </td>
+        <td>
+          <img src="images/LNPN.png" align="middle" width="400px"/>
+          <figcaption align="middle">Level Nearest, Pixel Nearest</figcaption>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 align="middle">Section III: Art Competition</h2>
+<p>If you are not participating in the optional art competition, don't worry about this section!</p>
+
+<h3 align="middle">Part 7: Draw something interesting!</h3>
+
+</body>
 </html>
