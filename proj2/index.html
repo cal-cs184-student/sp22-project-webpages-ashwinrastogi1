@@ -1,7 +1,232 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 2 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <style>
+    body {
+      padding: 100px;
+      width: 1000px;
+      margin: auto;
+      text-align: left;
+      font-weight: 300;
+      font-family: 'Open Sans', sans-serif;
+      color: #121212;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: 'Source Sans Pro', sans-serif;
+    }
+  </style>
+  <title>CS 184 Mesh Editor</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+  <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2022</h1>
+  <h1 align="middle">Project 2: Mesh Editor</h1>
+  <h2 align="middle">Aswhin Rastogi, Jared Tating, CS184-team-team</h2>
+
+  <br><br>
+
+  <div>
+
+    <h2 align="middle">Overview</h2>
+    <p>In this project we implemented methods of surface interpolation and drawing using Bezier curves to use control points as ways to model curves and surfaces. We also implemented components of a mesh to represent objects and created methods to upsample meshes from coarser models to more fine detailed/smoother meshes. </p>
+
+    <h2 align="middle">Section I: Bezier Curves and Surfaces</h2>
+
+    <h3 align="middle">Part 1: Bezier curves with 1D de Casteljau subdivision</h3>
+
+    <div>
+      <p>Castlejau's algorithm is a method of creating a bezier curves based on control points, and cutting corners based on a value, t, that sets the proportion of an edge to start a cut from.
+      We've implemented this through recursion, where each step in the recursive process eventually reduces the corners to one point, which becomes the point on the bezier curve. This gives us a curve parameterized on the chosen t value.</p>
+      <div align="middle">
+        <table>
+          <tr>
+            <td>
+              <img src="images/bezier_1.png" width="400px">
+              <figcaption align="middle">Level 1 Bezier Curve</figcaption>
+            </td>
+            <td>
+              <img src="images/bezier_2.png" width="400px">
+              <figcaption align="middle">Level 2 Bezier Curve</figcaption>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/bezier_3.png" width="400px">
+              <figcaption align="middle">Level 3 Bezier Curve</figcaption>
+            </td>
+            <td>
+              <img src="images/bezier_4.png" width="400px">
+              <figcaption align="middle">Level 4 Bezier Curve</figcaption>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/bezier_5.png" width="400px">
+              <figcaption align="middle">Level 5 Bezier Curve</figcaption>
+            </td>
+            <td>
+              <img src="images/bezier_6.png" width="400px">
+              <figcaption align="middle">Level 6 Bezier Curve</figcaption>
+            </td>
+          </tr>
+        </table>
+
+        <img src="images/bezier_diff.png" width="400px">
+        <figcaption align="middle">Slightly different Bezier w/ different T value.</figcaption>
+      </div>
+    </div>
+
+
+
+    <h3 align="middle">Part 2: Bezier surfaces with separable 1D de Casteljau subdivision</h3>
+
+    <div>
+      <p>De Castlejau extends to surfaces by evaluting the bezier curve at each "row" of a three-dimensional space. In order to implement this, we evaluated the bezier curve at a given row, and the resulting point for a given u.
+      We then did this across a whole patch by evaluating the bezier curves and parameterizing them with a given v, resulting in points across a surface.</p>
+
+      <div align="middle">
+        <img src="images/bez_surf.png" width="400px">
+        <figcaption align="middle">Screenshot of bez/teapot.bez.</figcaption>
+      </div>
+
+    </div>
+
+
+
+    <h2 align="middle">Section II: Sampling</h2>
+
+    <h3 align="middle">Part 3: Average normals for half-edge meshes</h3>
+
+    <div>
+      <p>To implement area-weighted vertex normals, we traversed through the incident edges of a vertex, and calculated their face's normal. We then normalized these normals to get the area-weighted vertex normal.</p>
+      <div align="middle">
+        <table>
+          <tr>
+            <td>
+              <img src="images/task_3_1.png" width="400px">
+              <figcaption align="middle">Flat Shadding</figcaption>
+            </td>
+            <td>
+              <img src="images/task_3_2.png" width="400px">
+              <figcaption align="middle">Phong Shadding</figcaption>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+
+    <h3 align="middle">Part 4: Half-edge flip</h3>
+    <div>
+      <p>To implement the edge flip operation, I reasigned all of the values for meshes to point to their new values. What was interesting about this implementation is that no new objects were created. Instead each pointer pointed to
+      an already existing object.</p>
+
+      <div align="middle">
+        <table>
+          <tr>
+            <td>
+              <img src="images/task_4_1.png" width="400px">
+              <figcaption align="middle">Original Teapot</figcaption>
+            </td>
+            <td>
+              <img src="images/task_4_2.png" width="400px">
+              <figcaption align="middle">Teapot with flipped edges</figcaption>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <p>There was a whole when I first ran the code and tried to flip edges, but the edge still managed to flip. I figured it must be that some of the attributes were being assigned incorrectly, which was indeed the problem.</p>
+
+
+    </div>
+
+
+    <h3 align="middle">Part 5: Half-edge split</h3>
+
+    <div>
+      <p>We used a very similar approach that we used for edge flipping to implement the edge split operation. The only difference is that we created new mesh parts and assigned their attributes to their respective counter parts.
+      An interestin implementation trick was to make use of all the old mesh parts, and only make the minimum amount of new mesh parts needed. Drawing the diagram on a piece of paper also greatly helped in the implementation process. </p>
+
+      <div align="middle">
+        <img src="images/before.png" width="400px">
+        <figcaption align="middle">"bean.dae" Before</figcaption>
+        <table>
+          <tr>
+            <td>
+              <img src="images/edgesplit.png" width="400px">
+              <figcaption align="middle">"bean.dae" After Edge Split</figcaption>
+            </td>
+            <td>
+              <img src="images/edgesplitflip.png" width="400px">
+              <figcaption align="middle">"bean.dae" After Edge Split and Edge Flip</figcaption>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <p>Because I drew out a diagram before implementation, I did not face any tough bugs. I did have some holes when I first tested Edge Split. I assumed it must be due to an incorrectly assigned face, which was indeed the culprit.</p>
+
+    </div>
+
+
+    <h3 align="middle">Part 6: Loop subdivision for mesh upsampling</h3>
+    <div>
+      <p>
+      We followed the structure outlined by the project spec for the most part. We essentially calculated and stored the final positions of the original vertices by following loop subdivision rules and stored them without yet modifying vertex positions. Similarly, we calculated the positions of any new vertices that would be created by spliting edges and stored them in the edge structures without splitting the edge. Once the edges are split, in any order, the created vertices were given new positions based on the previously calculated edge value and any edge that was new and connected an old vertex and new vertex was flipped. This part lends itself to lots of bugs that were localized in split and flip operations that were harder to find when inspecting the meshes blindly. A debugging trick we found useful was to use the simplicity of the cube mesh to check each individual vertex involved in the splitting and flipping operation.
+      We noticed that with upsampling the sharp corners and edges become more smoothed out and curved.
+      Experimenting with edge pre-splitting with the cube revealed that loop subdivision exacerbates asymmetry in the way edges are defined. As can be seen in the screenshots below, splitting the diagonal edges to get a rotationally symmetric cube results with sharper more visible edges.
+      </p>
+      
+      <div align="middle">
+        <img src="images/originalcube.png" width="400px">
+        <figcaption align="middle">"cube.dae" Upsampled without any preprocessing</figcaption>
+        <table>
+          <tr>
+            <td>
+              <img src="images/splitcube.png" width="400px">
+              <figcaption align="middle">"cube.dae" Before upsampling with symmetric edge split preprocessing</figcaption>
+            </td>
+            <td>
+              <img src="images/splitcubeup.png" width="400px">
+              <figcaption align="middle">"cube.dae" After upsampling with symmetric edge split preprocessing</figcaption>
+            </td>
+          </tr>
+        </table>
+      </div>
+      
+      <p>Below is the same cube at different levels of upsampling. As mentioned before, the loop subdivision upsampling exacerbates any asymmetry in edge orientations. This can be solved by using more rotationally symmetric edge orientations.</p>
+      <table>
+        <tr>
+          <td>
+            <img src="images/cube1.png" width="400px">
+          </td>
+          <td>
+            <img src="images/cube2.png" width="400px">
+          </td>
+          <td>
+            <img src="images/cube3.png" width="400px">
+          </td>
+        </tr>
+      </table>
+    </div>
+
+
+
+    <h2 align="middle">Section III: Optional Extra Credit</h2>
+    <p>If you are not participating in the optional mesh competition, don't worry about this section!</p>
+
+    <h3 align="middle">Part 7: Design your own mesh!</h3>
+
+</body>
+
 </html>
