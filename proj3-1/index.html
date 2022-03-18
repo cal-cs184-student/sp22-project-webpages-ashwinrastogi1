@@ -1,7 +1,207 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 3-1 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+    div.padded {
+      padding-top: 0px;
+      padding-right: 100px;
+      padding-bottom: 0.25in;
+      padding-left: 100px;
+    }
+  </style>
+<title>Ashwin Rastogi and Jared Tating  |  CS 184</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<body>
+<br />
+<h1 align="middle">Assignment 3: PathTracer</h1>
+    <h2 align="middle">Ashwin Rastogi and Jared Tating</h2>
+
+    <div class="padded">
+        <p>In this project, we implemented concepts in ray pathtracing and ray tracing acceleration to render scenes from dae files efficiently. We create bounding volume boxes and use statistical sampling (importance and hemisphere sampling) to efficiently test for intersections of rays and scene objects and follow indirect rays. This allows us to create realistic renders of scenes with different lightings and shadows as well colors.</p>
+
+    <h2 align="middle">Part 1: Ray Generation and Intersection</h2>
+        <p>Ray Generation: To generate a ray, we first take the coordinates from the image space and transform them onto the camera space. We set the ray's origin to be the camera's position, and it's direction to be the normalized vector pointing to the point corresponding to the image space that we transformed earlier. </p>
+        <p>Primitive Intersections: This involved finding the intersections of differently defined shapes, many of which where implicitly defined. For this, we simply substituted the ray vector equation into the position vector used in the definition of the shape and solved for t. We then selected the closer of the possible t values (there may be 2, e.g. in the case of the sphere), given that they were within the range of the min and max values of t in the ray object. We also updated the value of max_t to the closer calculated t if the intersection was valid.</p>
+        <p>Triangle Intersection Algorithm: Similar to the primitive intersection, here we know that triangles are planar, i.e. they define a plane. Usually, we can find a plane they live on and then find the intersection of the ray with the plane, then do barycentric interpolation and check that all barycentric coordinates are nonnegative and the value of t is within the min and max range for the ray. Instead, we directly used the Möller Trumbore algorithm to find both the value of t and the two independent barycentric coordinates. We then performed the above mentioned checks to see if the intersection was valid, and used barycentric interpolation to approximate the normal vector using the normal vectors at the vertices.</p>
+
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBempty.png" width="480px" />
+                    <figcaption align="middle">CBempty.dae with normal shading</figcaption>
+                    <td align="middle">
+                    <img src="images/CBspheres.png" width="480px" />
+                    <figcaption align="middle">CBspheres.dae with normal shading</figcaption>
+                </tr>
+            </table>
+        </div>
+
+
+    <h2 align="middle">Part 2: Bounding Volume Hierarchy</h2>
+    
+    <p>The BVH construction recursively separates the primitives based on locality with ideally an even split so that when inspecting for intersections, primites inside bounding boxes that are not intercepted by the ray can be ignored. This introduces logarithmic asymptotic behavior in place of the previous linear behavior. To construct the BVH, we first created a new bounding box and expanded it to include all primitives in the provided iterator. We then calculated the centroid of all the primitives in the box and identified its longest axes (using extent). We decided to split the axis that was longest. We then partitioned the primitives based on whether it was below or above the splitting plane and recursively constructed the bounding boxes on the two partitions. If the number of primitives provided was below some threshold, we decided to make it a leaf and assigned the node a start and end interator for the primitives and no left or right children.</p>
+
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td align="middle">
+                <img src="images/Face.png" width="480px" />
+                <figcaption align="middle">maxplanck.dae with normal shading using BVH Accel</figcaption>
+                <td align="middle">
+                <img src="images/Statue.png" width="480px" />
+                <figcaption align="middle">CBlucy.dae with normal shading using BVH Accel</figcaption>
+            </tr>
+        </table>
+    </div>
+
+    <p>Without BVH Acceleration, cow.dae took almost a minute to render, but with the BVH Acceleration, the image rendered in a matter of seconds. This is because rays now just test for primitive intersections in bounding boxes that it passes through rather than every single primitive. Furthermore, other dense images like maxplanck which had tens of thousands of triangles took very long to render without BVH acceleration but rendered within seconds once BVH was implemented. </p>
+
+    <h2 align="middle">Part 3: Direct Illumination</h2>
+      <p>Direct Illumination: In hemisphere sample lighting, we calculate lighting by shooting rays in all directions of a hemisphere, and check whether those rays hit a light source. Of those rays that hit a light source, we multiply their emission, by the bsdf of the ingoing and outgoing rays, the incoming rays and their relative cosines, then dividing by the pdf.
+      Importance sampling is calculated in a very similar manner, but instead of aimlessly shooting rays, we shoot rays to every light source in the scene. We then check if there is an object between the hit point and the light source, and calculate the result the same way as in hemisphere lighting.</p>
+
+      <div align="center">
+          <table style="width=100%">
+              <tr>
+                  <td align="middle">
+                  <img src="images/3_hemisphere.png" width="480px" />
+                  <figcaption align="middle">Direct Lighting: Hemisphere Sampling</figcaption>
+                  <td align="middle">
+                  <img src="images/3_importance.png" width="480px" />
+                  <figcaption align="middle">Direct Lighting: Importance Sampling</figcaption>
+              </tr>
+          </table>
+      </div>
+
+      <p align="center">Scene with at least one area light and compare the noise levels in soft shadows when rendering with 1, 4, 16, and 64 light rays and with 1 sample per pixel using light sampling.</p>
+
+      <div align="center">
+          <table style="width=100%">
+              <tr>
+                  <td align="middle">
+                  <img src="images/3_1_1.png" width="480px" />
+                  <figcaption align="middle">Importance Sampling: 1 Light Ray</figcaption>
+                  <td align="middle">
+                  <img src="images/3_1_4.png" width="480px" />
+                  <figcaption align="middle">Importance Sampling: 4 Light Rays</figcaption>
+              </tr>
+              <tr>
+                  <td align="middle">
+                  <img src="images/3_1_16.png" width="480px" />
+                  <figcaption align="middle">Importance Sampling: 16 Light Rays</figcaption>
+                  <td align="middle">
+                  <img src="images/3_1_64.png" width="480px" />
+                  <figcaption align="middle">Importance Sampling: 64 Light Rays</figcaption>
+              </tr>
+          </table>
+      </div>
+
+      <p>Uniform Sampling produces an image that looks much more granier than Light Sampling, especially at low sample rates. At very low sample rates, Light sampling still produces an identifiable image, while Uniform sampling does not. That is because with low samples, the probability that a ray hits a light source is very low, and will just produce a black pixel. With Light Sampling however, the pixel is almost guaranteed to be colored–to some extent, if there is an uninterupted line of sight with a light source–because we are directly sampling the directions there is a light source. At high sample rates, uniform sampling still produces a slightly noisy picture, while light sample produces a very sharp and smooth image.</p>
+
+
+    <h2 align="middle">Part 4: Global Illumination</h2>
+    <p>The first task of this project was to implement the bsdf function for diffusion using a hemisphere sampling model. The bsdf sampling was then used when ray pathtracing recursively to determine both indirect ray paths but also the reflectance and radiance at the hitpoint. The bsdf function essentially importance samples a direction from the hemisphere and effectively returns both the direction and proportion of radiance transferred to the incoming ray.
+    </p>
+    
+    <p>The next task was to implement global illumination using recursive steps and russian roulette as a unbiased termination check. Firstly, if the depth of the incoming ray was 0, i.e. it has bounced the max number of times allowed then we simply return the zero vector. We then initialize the results with the one bounce radiance of the ray and the primitive intersection. We calculate the outgoing ray direction in object space easily and then convert it to world space so we can define the indirect ray that might need to be traced. We check if the next ray intersects the scene: if it does then we need to recurse on the ray and if not then recursion ends as the ray does not light anything else up. We then flip a coin with some continuation probability (between 0.6 and 0.7) and if true, we continue to recurse on the indirect ray. This is the russian roulette step. We add the result of the recursion to our radiance result and return the output. When adding the radiances together, it is important to remember to multiply by the bsdf value, the cosine term due to the angle from the normal, and also divide by both the pdf and the continuation probability.</p>
+    
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td align="middle">
+                <img src="images/spheresdirect.png" width="480px" />
+                <figcaption align="middle">Only Direct Illumination</figcaption>
+                <td align="middle">
+                <img src="images/spheresindirect.png" width="480px" />
+                <figcaption align="middle">Only Indirect Illumination</figcaption>
+            </tr>
+        </table>
+    </div>
+    
+    <p>The image on the left is with only direct illumination (no recursive path tracing) and the image on the right is only with indirect illumination which does not consider zero bounce and one bounce paths. As can be seen, the image with only direct illumination has much more pronounced shadows and the ceiling is dark because no bounces of the ceiling are allowed. On the other hand, the image with only indirect illumination is dimmer and the light source is out because zero bounce radiance was ignored.</p>
+    
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td align="middle">
+                <img src="images/bunnym0.png" width="480px" />
+                <figcaption align="middle">Bunny with max ray depth 0</figcaption>
+                <td align="middle">
+                <img src="images/bunnym1.png" width="480px" />
+                <figcaption align="middle">Bunny with max ray depth 1</figcaption>
+            </tr>
+            <tr>
+                <td align="middle">
+                <img src="images/bunnym2.png" width="480px" />
+                <figcaption align="middle">Bunny with max ray depth 2</figcaption>
+                <td align="middle">
+                <img src="images/bunnym3.png" width="480px" />
+                <figcaption align="middle">Bunny with max ray depth 3</figcaption>
+            </tr>
+            <tr>
+                <td align="middle">
+                <img src="images/bunnym100.png" width="480px" />
+                <figcaption align="middle">Bunny with max ray depth 100</figcaption>
+            </tr>
+        </table>
+    </div>
+    
+    <p>As can be seen above, with ray depth 0, only zero bounce radiance is accounted for and so nothing but the light is visible. At max ray depth 1, one bounce radiance is considered and so the bunny is seen with a pronounced shadow. As max ray depth increases, the overall brightness of the image slightly increases and the bunny's features are more visible and the shadows are slightly smaller. The effect of additional bounces decreases exponentially and so the differences between max ray depth 3 and max ray depth 100 are rather small.</p>
+    
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td align="middle">
+                <img src="images/benchs1.png" width="480px" />
+                <figcaption align="middle">Bench with pixel sample rate of 1</figcaption>
+                <td align="middle">
+                <img src="images/benchs2.png" width="480px" />
+                <figcaption align="middle">Bench with pixel sample rate of 2</figcaption>
+            </tr>
+            <tr>
+                <td align="middle">
+                <img src="images/benchs4.png" width="480px" />
+                <figcaption align="middle">Bench with pixel sample rate of 4</figcaption>
+                <td align="middle">
+                <img src="images/benchs8.png" width="480px" />
+                <figcaption align="middle">Bench with pixel sample rate of 8</figcaption>
+            </tr>
+            <tr>
+                <td align="middle">
+                <img src="images/benchs16.png" width="480px" />
+                <figcaption align="middle">Bench with pixel sample rate of 16</figcaption>
+                <td align="middle">
+                <img src="images/benchs64.png" width="480px" />
+                <figcaption align="middle">Bench with pixel sample rate of 64</figcaption>
+            </tr>
+            <tr>
+                <td align="middle">
+                <img src="images/benchs1024.png" width="480px" />
+                <figcaption align="middle">Bench with pixel sample rate of 1024</figcaption>
+            </tr>
+        </table>
+    </div>
+    
+    <p>The image with a sample rate of 1 is very noisy due to the variance across the scene and we can observe that the noise smooths out as we increase sampling rate until there is barely any visible noise in the 1024 sample rate image.</p>
+
+    <h2 align="middle">Part 5: Adaptive Sampling</h2>
+    <p>Following the tips provided by the project spec, we interated over the rays in sample batches, adding up the total illuminance and the total illuminance square at each sample. At the end of each batch, we calculated the mean, standard deviation and the value of I. If the calculated I value was less than or equal to the mean times the max tolerance, then the pixel likely converged and we could terminate the sampling process. We kept track of the number of samples needed and updated the value in sampleBufferRate.</p>
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td align="middle">
+                <img src="images/dragon5.png" width="480px" />
+                <figcaption align="middle">Adaptive sampling: Dragon with 2048 samples per pixel</figcaption>
+                <td align="middle">
+                <img src="images/dragon5_rate.png" width="480px" />
+                <figcaption align="middle">Adaptive sampling: Dragon sampling rate image</figcaption>
+            </tr>
+        </table>
+    </div>
+
+</div>
+</body>
 </html>
