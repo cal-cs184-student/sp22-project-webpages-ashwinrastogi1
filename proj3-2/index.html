@@ -1,7 +1,116 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 3-2 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+    div.padded {
+      padding-top: 0px;
+      padding-right: 100px;
+      padding-bottom: 0.25in;
+      padding-left: 100px;
+    }
+  </style>
+<title>Ashwin Rastogi & Jared Tating |  CS 184</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<body>
+<br />
+<h1 align="middle">Assignment 3: PathTracer</h1>
+    <h2 align="middle">Ashwin Rastogi & Jared Tating</h2>
+
+    <div class="padded">
+        <p>In this project, we extended the functionality of previous path tracing work to enable rendering of materials with certain properties, namely reflectivity and refraction, along with modeling of microstructures using microfacet theory.</p>
+
+    <h2 align="middle">Part 1: Ray Generation and Intersection</h2>
+        <p>For this part of the project, we implemented reflection and refraction support that allowed path tracing into materials with transparency and reflectivity properties (like glass etc.). This was done by, in object coordinates, using laws of optics such as equality of angle of incidence and angle of reflection to the normal during reflection, Snell's law for refraction into a medium, and (implicitly) the critical angle for total internal reflection. Approximations of the Fresnel equations for transmittance and reflectivity were also used to approximate portions of light being reflected and refracted (both happen simultaneously). All images provided below were rendered with 256 samples per pixel and a light sample rate of 16.</p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/spheres0.png" width="480px" />
+                    <figcaption align="middle">Spheres with max ray depth of 0</figcaption>
+                    <td align="middle">
+                    <img src="images/spheres1.png" width="480px" />
+                    <figcaption align="middle">Spheres with max ray depth of 1</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/spheres2.png" width="480px" />
+                    <figcaption align="middle">Spheres with max ray depth of 2</figcaption>
+                    <td align="middle">
+                    <img src="images/spheres3.png" width="480px" />
+                    <figcaption align="middle">Spheres with max ray depth of 3</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/spheres4.png" width="480px" />
+                    <figcaption align="middle">Spheres with max ray depth of 4</figcaption>
+                    <td align="middle">
+                    <img src="images/spheres5.png" width="480px" />
+                    <figcaption align="middle">Spheres with max ray depth of 5</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/spheres100.png" width="480px" />
+                    <figcaption align="middle">Spheres with max ray depth of 100</figcaption>
+                </tr>
+            </table>
+        </div>
+        <p>At max ray depth of 0, we only see emission and no bounces are allowed. As a result only the light source is visible. At max ray depth 1, the walls and the shape of the spheres are visible. Furthermore, the reflection of the light source off of the spheres is visible, however, we see nothing inside of the spheres because refracted rays would require additional bounces. Here, the ceiling is dark as well. At max ray depth 2, the light that bounces of the room and then off the shiny ball are visible. We can also see the reflection of the glass ball (though it is dark right now) in the virtual image/reflection created by the shiny ball. The glass ball is dark because it allows reflection however there is still not enough ray depth to allow for refraction through the glass ball. Both balls have a deep dark shadow and the ceiling is now lit up. At max ray depth 3, the glass ball is now brighter and we can see the result of refraction through the shape. For one, due to the curvature of the sphere we see that the lines on the ceiling appear curved in the ball. Furthermore, the shadow of the glass ball has a bright spot due to the concentration of light from the ceiling via refraction. Lastly, the glass ball's reflection in the shiny ball is still dark as light from the walls passing through the glass don't have enough bounces to reach it. With max ray depth 4, The shadows of both balls are lit up and the reflection of the glass ball on the shiny ball is visible and the color of the purple wall bleeds into the reflection seen on the shiny ball. There is also a spot on the purple wall that is lit up from light that refracts through the glass ball and then reflects from the wall to the camera. At max ray depth 5 and 100, differences are subtle and the most observable things are softer shadows and slight increases in brightness.</p>
+
+
+      <h2 align="middle">Part 2: Microfacet Material </h2>
+        <p>In part 2, we implemented microfacet materials. Instead of a ray diffusing light uniformly, we only allowed light rays to bounce in specific directions based on the surfaces material, i.e. the surfaces alpha, eta, and k values. In order to do this, instead of a surface being smooth and having only 1 normal, the surface was rough, and had many normals, forcing the light to bounce in many directions. We then implemented importance sampling of the microfacet BRDF according to the shape of the Beckmann NDF. </p>
+
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/dragon_a_0.005.png" width="480px" />
+                    <figcaption align="middle">CBdragon_microfacet_au.dae rendered with α set to 0.005</figcaption>
+                    <td align="middle">
+                    <img src="images/dragon_a_0.05.png" width="480px" />
+                    <figcaption align="middle">CBdragon_microfacet_au.dae rendered with α set to 0.05</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/dragon_a_0.25.png" width="480px" />
+                    <figcaption align="middle">CBdragon_microfacet_au.dae rendered with α set to 0.25</figcaption>
+                    <td align="middle">
+                    <img src="images/dragon_a_0.5.png" width="480px" />
+                    <figcaption align="middle">CBdragon_microfacet_au.dae rendered with α set to 0.5</figcaption>
+                </tr>
+            </table>
+
+            <p>With a small alpha, the surface is very smooth, and so less of the light is bouncing directly towards the camera. With a larger alpha, the surface is very rough, and so more of the light is scattered and diffused, resulting in a matte image.</p>
+
+        </div>
+
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/bunny_uniform_sampling.png" width="480px" />
+                    <figcaption align="middle">CBbunny_microfacet_cu.dae Uniform Sampling</figcaption>
+                    <td align="middle">
+                    <img src="images/bunny_important_sampling.png" width="480px" />
+                    <figcaption align="middle">CBbunny_microfacet_cu.dae Important Sampling</figcaption>
+                </tr>
+            </table>
+
+            <p>Because unifrom sampling samples incident arrays uniformly, if none of the rays sampled happen to come from a lit area, the pixel is black. But because important sampling does not sample uniformly, but rather based on Beckman distribution, it is much more smooth, and less grainy.</p>
+
+        </div>
+
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/dragon_cobalt.png" width="480px" />
+                    <figcaption align="middle">CBdragon_microfacet.dae with eta and k values corresponding to Cobalt</figcaption>
+                </tr>
+            </table>
+        </div>
+</div>
+</body>
 </html>
