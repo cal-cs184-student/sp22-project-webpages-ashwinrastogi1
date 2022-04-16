@@ -1,7 +1,326 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 4 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184 Mesh Editor</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2017</h1>
+<h1 align="middle">Project 4: Cloth Simulator</h1>
+<h2 align="middle">Ashwin Rastogi, Jared Tating, CS184-p4-clothsim-sp22-team-team-p4
+</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>This is one of the coolest projects I've worked on. In this project we used approximations of mechanics in physics to simulate the behavior of cloth using masses and springs. We integrated their behavior over time and also included textures and shaders to create different effects.</p>
+
+<h2 align="middle">Part I: Masses and springs</h2>
+
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/task_1_1.png" width="480px" />
+            <figcaption align="middle">Fig. 1: scene/pinned2.json</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+          <td>
+          <img src="images/task_1_2_1.png" width="480px" />
+          <figcaption align="middle">Fig. 2: scene/pinned2.json without Shearing Constraints</figcaption>
+          </td>
+          <td>
+          <img src="images/task_1_2_2.png" width="480px" />
+          <figcaption align="middle">Fig. 3: scene/pinned2.json with only Shearing Constraints</figcaption>
+          </td>
+        </tr>
+        <tr>
+          <td>
+          <img src="images/task_1_2_3.png" width="480px" />
+          <figcaption align="middle">Fig. 4: scene/pinned2.json with only all Constraints</figcaption>
+          </td>
+        </tr>
+    </table>
+</div>
+
+<h2 align="middle">Part 2: Simulation via numerical integration</h2>
+
+<h3>Changing Parameters of the Simulation</h3>
+<p>Spring Constant: Changing the spring constant affects how strong Point Masses are pulled towards each other. A high ks results in more ripples and "bouncier" movement from start to rest, while a low ks results in less ripples, and is less bouncy.</p>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/task_2_low_ks.png" width="480px" />
+            <figcaption align="middle">Fig. 5: scene/pinned2.json with low spring constant</figcaption>
+            </td>
+            <td align="middle">
+            <img src="images/task_2_high_ks.png" width="480px" />
+            <figcaption align="middle">Fig. 6: scene/pinned2.json with high spring constant</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<p>Density: Increasing the density results in a sheet that has closer ripples, and droops more towards gravity. Decreasing the density results in a sheet that has less ripples, and does not droop very much.</p>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/task_2_low_d.png" width="480px" />
+            <figcaption align="middle">Fig. 7: scene/pinned2.json with low density constant</figcaption>
+            </td>
+            <td align="middle">
+            <img src="images/task_2_high_d.png" width="480px" />
+            <figcaption align="middle">Fig. 8: scene/pinned2.json with high density constant</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<p>Damping Rate: A high damping rate results in a sheet that moves much slower, however quickly converges to its resting. A low damping rate moves much faster, sporadically, and convergest to its resting place much slower, if at all.</p>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/task_2_low_damp.png" width="480px" />
+            <figcaption align="middle">Fig. 9: scene/pinned2.json with high dampening</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/task_2.png" width="480px" />
+            <figcaption align="middle">Fig. 10: scene/pinned4.json in its final resting state with default parameters</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<h2 align="middle">Part 3: Handling collisions with other objects</h2>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+          <td>
+          <img src="images/task_3_5000.png" width="480px" />
+          <figcaption align="middle">Fig. 11: scene/sphere.json with ks = 5000</figcaption>
+          </td>
+          <td>
+          <img src="images/task_3_500.png" width="480px" />
+          <figcaption align="middle">Fig. 12: scene/sphere.json with ks = 500</figcaption>
+          </td>
+        </tr>
+        <tr>
+          <td>
+          <img src="images/task_3_50000.png" width="480px" />
+          <figcaption align="middle">Fig. 13: scene/sphere.json ks = 50000</figcaption>
+          </td>
+        </tr>
+    </table>
+</div>
+
+<p>A spring constant ks = 5000 looks to have the most natural drape over a sphere. ks = 500 drapes the sphere closer, and more droopy, as if the thickness of the sheet was very thin, while ks = 50000 looks very stiff, and droops the least, as if the sheet is very thick.</p>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/task_3_plane.png" width="480px" />
+            <figcaption align="middle">Fig. 14: scene/plane.json in its final resting state with default parameters</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<h2 align="middle">Part 4: Handling self-collisions</h2>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/cloth1.png" width="300px"/>
+            <figcaption align="middle">Default initial self collisions</figcaption>
+            </td>
+            <td align="middle">
+            <img src="images/cloth2.png" width="300px" />
+            <figcaption align="middle">Default intermediate state</figcaption>
+            </td>
+            <td align="middle">
+            <img src="images/cloth3.png" width="300px" />
+            <figcaption align="middle">Default restful state</figcaption>
+            </td>
+        </tr>
+        <tr>
+            <td>
+            <img src="images/cloth_small_k_1.png" width="300px" />
+            <figcaption align="middle">Low spring constant initial self collisions</figcaption>
+            </td>
+            <td>
+            <img src="images/cloth_small_k_2.png" width="300px" />
+            <figcaption align="middle">Low spring constant intermediate state</figcaption>
+            </td>
+            <td>
+            <img src="images/cloth_small_k_3.png" width="300px" />
+            <figcaption align="middle">Low spring constant restful state</figcaption>
+            </td>
+        </tr>
+        <tr>
+            <td>
+            <img src="images/cloth_large_k_1.png" width="300px" />
+            <figcaption align="middle">Large spring constant initial self collisions</figcaption>
+            </td>
+            <td>
+            <img src="images/cloth_large_k_2.png" width="300px" />
+            <figcaption align="middle">Large spring constant intermediate state</figcaption>
+            </td>
+            <td>
+            <img src="images/cloth_large_k_3.png" width="300px" />
+            <figcaption align="middle">Large spring constant restful state</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<p>The effect of spring constant shown in the above pictures matches the general behavior of what was expected in previous parts. Higher spring constants tend look smoother and very rigid. They also tend to last in the first "restful" position for much longer, i.e. they take longer to unfurl. The cloth also behaves as if it were thicker which makes sense as the bending strings are more rigid. Lower spring constant causes the cloth to look less smooth (as if it were wrinkled) and much less rigid. It also behaves as if it were thinner. The cloth folds over much more.</p>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/cloth_small_g_1.png" width="300px"/>
+            <figcaption align="middle">Low density initial self collisions</figcaption>
+            </td>
+            <td align="middle">
+            <img src="images/cloth_small_g_2.png" width="300px" />
+            <figcaption align="middle">Low density intermediate state</figcaption>
+            </td>
+            <td align="middle">
+            <img src="images/cloth_small_g_3.png" width="300px" />
+            <figcaption align="middle">Low density restful state</figcaption>
+            </td>
+        </tr>
+        <tr>
+            <td>
+            <img src="images/cloth_large_g_1.png" width="300px" />
+            <figcaption align="middle">High density initial self collisions</figcaption>
+            </td>
+            <td>
+            <img src="images/cloth_large_g_2.png" width="300px" />
+            <figcaption align="middle">High density intermediate state</figcaption>
+            </td>
+            <td>
+            <img src="images/cloth_large_g_3.png" width="300px" />
+            <figcaption align="middle">High density restful state</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<p>Density seems to have the opposite effect of spring constant. Higher density cloth tends to be more wrinkled and folds over itself much more and lower density cloths are smoother and behave more rigidly (in the sense that they create larger arks when folding). High density cloth also seems to have really narrow folds.</p>
+
+<h2 align="middle">Part 5: Shaders</h2>
+
+<p>Shaders are essentially programs that run basic graphics operations (like implementing geometric transformations, different light intensity models, and textures) for each individual vertex, if it's a vertex shader, or each fragment in the later stages of the rasterization pipeline if it's a fragment shader. These bits of code are super parallelizable and so are run directly on GPUs.</p>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/part5.png" width="480px"/>
+            <figcaption align="middle">All Blinn-Phong components</figcaption>
+            </td>
+            <td align="middle">
+            <img src="images/part5_ambient.png" width="480px" />
+            <figcaption align="middle">Only ambient lighting</figcaption>
+            </td>
+        </tr>
+        <tr>
+            <td>
+            <img src="images/part5_diffuse.png" width="480px" />
+            <figcaption align="middle">Only diffuse lighting</figcaption>
+            </td>
+            <td>
+            <img src="images/part5_spec.png" width="480px" />
+            <figcaption align="middle">Only specular lighting</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+<p>Blinn_Phong lighting builds on regular diffuse lighting by taking into account the reflection of ambient light and an specular reflection off the cloths surface to produce a more complete and accurate image.</p>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td>
+            <img src="images/iroh.png" width="480px" />
+            <figcaption align="middle">Uncle Iroh Custom Texture</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td>
+            <img src="images/bump.png" width="480px" />
+            <figcaption align="middle">Bump shading with texture 4</figcaption>
+            </td>
+            <td>
+            <img src="images/disp.png" width="480px" />
+            <figcaption align="middle">Displacement shading with texture 4</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<p>The effect of the height map is a little more dramatic in the displacement shading image and is smoother in the bump shading image. The patterns formed from the displacement image are more noticeable and realistic.</p>
+
+<div align="middle">
+    <table style="width=100%">
+        <tr>
+            <td>
+            <img src="images/mirror.png" width="480px" />
+            <figcaption align="middle">Mirror shader</figcaption>
+            </td>
+        </tr>
+    </table>
+</div>
+
+</body>
 </html>
